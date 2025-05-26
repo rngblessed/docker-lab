@@ -57,7 +57,8 @@ jobs:
             ssh -o StrictHostKeyChecking=no \
                 -p ${{ secrets.SSH_PORT }} \
                 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            "podman load && \
+            "set -xe
+             podman load && \
              podman tag myapp:latest myapp:latest && \
              (podman stop myapp || true) && \
              (podman rm myapp || true) && \
