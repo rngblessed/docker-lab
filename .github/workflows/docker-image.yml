@@ -2,7 +2,7 @@ name: docker-image & CI
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 jobs:
   build-test-deploy:
