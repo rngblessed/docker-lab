@@ -44,8 +44,7 @@ jobs:
 
       - name: Run tests
         run: |
-          docker run --rm \
-            --network host \
+          docker run \
             -e PYTHONPATH=/app \
             myapp:test \
             pytest tests
