@@ -1,4 +1,4 @@
-name: CI & Deploy
+name: docker-dm & CI
 
 on:
   push:
@@ -33,7 +33,7 @@ jobs:
             sleep 2
           done
 
- - name: Initialize DB from dump
+      - name: Initialize DB from dump
         run: psql postgresql://kubsu:kubsu@localhost:5432/kubsu -f kubsu/dump.sql
 
       - name: Build Docker image
@@ -50,6 +50,7 @@ jobs:
             myapp:test \
             pytest tests
 
+
       - name: Build prod image
         run: docker build -t myapp:latest .
 
@@ -57,7 +58,6 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
 
       - name: Deploy to remote server
         run: |
@@ -67,8 +67,10 @@ jobs:
                 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
             "podman load && \
              podman tag myapp:latest myapp:latest && \
+             (podman stop myapp || true) && \
+             (podman rm myapp || true) && \
              podman run -d \
                --name myapp \
                --network host \
                myapp:latest \
-               uvicorn src.main:app --host 0.0.0.0 --port 8094"
+               uvicorn src.main:app --host 0.0.0.0 --port 8026"
