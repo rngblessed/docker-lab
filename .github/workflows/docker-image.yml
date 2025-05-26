@@ -1,4 +1,4 @@
-name: docker-dm & CI
+name: docker-image & CI
 
 on:
   push:
@@ -73,4 +73,4 @@ jobs:
                --name myapp \
                --network host \
                myapp:latest \
-               uvicorn src.main:app --host 0.0.0.0 --port 8026"
+               uvicorn src.main:app --host 0.0.0.0 --port 8094"
