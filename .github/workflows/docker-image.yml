@@ -7,26 +7,24 @@ on:
 jobs:
   build-test-deploy:
     runs-on: self-hosted
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: kubsu
+          POSTGRES_USER: kubsu
+          POSTGRES_PASSWORD: kubsu
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kubsu"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
-      - name: Start Postgres
-        run: |
-          docker run -d --name pg \
-            -p 5432:5432 \
-            -e POSTGRES_DB=kubsu \
-            -e POSTGRES_USER=kubsu \
-            -e POSTGRES_PASSWORD=kubsu \
-            postgres:14
-
-      - name: Wait for Postgres
-        run: |
-          until pg_isready -h localhost -p 5432 -U kubsu; do
-            echo "Waiting for Postgres..."
-            sleep 2
-          done
 
       - name: Initialize DB from dump
         run: psql postgresql://kubsu:kubsu@localhost:5432/kubsu -f kubsu/dump.sql
