@@ -32,3 +32,42 @@ jobs:
             echo "Waiting for Postgres..."
             sleep 2
           done
+
+ - name: Initialize DB from dump
+        run: psql postgresql://kubsu:kubsu@localhost:5432/kubsu -f kubsu/dump.sql
+
+      - name: Build Docker image
+        run: docker build -t myapp:test .
+
+      - name: Build test image
+        run: docker build --target builder -t myapp:test .
+
+      - name: Run tests
+        run: |
+          docker run --rm \
+            --network host \
+            -e PYTHONPATH=/app \
+            myapp:test \
+            pytest tests
+
+      - name: Build prod image
+        run: docker build -t myapp:latest .
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to remote server
+        run: |
+          docker save myapp:latest | \
+            ssh -o StrictHostKeyChecking=no \
+                -p ${{ secrets.SSH_PORT }} \
+                ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "podman load && \
+             podman tag myapp:latest myapp:latest && \
+             podman run -d \
+               --name myapp \
+               --network host \
+               myapp:latest \
+               uvicorn src.main:app --host 0.0.0.0 --port 8094"
