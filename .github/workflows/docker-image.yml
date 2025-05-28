@@ -31,7 +31,7 @@ jobs:
             --network container:${{ job.services.postgres.id }} \
             -v ${{ github.workspace }}/kubsu:/tmp \
             postgres:14 \
-            psql postgresql://kubsu:kubsu@192.168.199.9:5432/kubsu -f /tmp/dump.sql
+            psql postgresql://kubsu:kubsu@postgres:5432/kubsu -f /tmp/dump.sql
 
       - name: Build Docker image
         run: docker build --no-cache -t myapp:test .
@@ -47,9 +47,8 @@ jobs:
           docker run --rm \
             --network container:${{ job.services.postgres.id }} \
             -e PYTHONPATH=/app \
-            -e DATABASE_URL=postgresql+psycopg://kubsu:kubsu@192.168.199.9:5432/kubsu \
+            -e DATABASE_URL=postgresql+psycopg://kubsu:kubsu@postgres:5432/kubsu \
             myapp:test
-
 
       - name: Build prod image
         run: docker build -t myapp:latest .
@@ -73,8 +72,9 @@ jobs:
             podman rm myapp || true
             podman run -d \
               --name myapp \
-              -p 127.0.0.1:8094:8094 \
+              --network host \
+              -e DATABASE_URL=postgresql+psycopg://kubsu:kubsu@localhost:5432/kubsu \
               --restart=always \
               myapp:latest \
-              uvicorn src.main:app --host 0.0.0.0 --port 8094 --proxy-headers
+              uvicorn src.main:app --host 127.0.0.1 --port 8094 --proxy-headers
           '
