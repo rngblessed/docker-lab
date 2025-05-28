@@ -63,3 +63,9 @@ async def delete_user(user_id: int, db: AsyncSession = Depends(get_db)):
     await db.commit()
     
     return {"detail": "User deleted"}
+
+@app.middleware("http")
+async def log_root_path(request, call_next):
+    print("root_path in request:", request.scope.get("root_path"))
+    return await call_next(request)
+
