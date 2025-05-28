@@ -31,7 +31,7 @@ jobs:
             --network container:${{ job.services.postgres.id }} \
             -v ${{ github.workspace }}/kubsu:/tmp \
             postgres:14 \
-            psql postgresql://kubsu:kubsu@localhost:5432/kubsu -f /tmp/dump.sql
+            psql postgresql://kubsu:kubsu@host.containers.internal:5432/kubsu -f /tmp/dump.sql
 
       - name: Build Docker image
         run: docker build --no-cache -t myapp:test .
@@ -47,7 +47,7 @@ jobs:
           docker run --rm \
             --network container:${{ job.services.postgres.id }} \
             -e PYTHONPATH=/app \
-            -e DATABASE_URL=postgresql+psycopg://kubsu:kubsu@postgres:5432/kubsu \
+            -e DATABASE_URL=postgresql+psycopg://kubsu:kubsu@host.containers.internal:5432/kubsu \
             myapp:test
 
 
