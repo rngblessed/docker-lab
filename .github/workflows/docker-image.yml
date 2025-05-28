@@ -76,5 +76,5 @@ jobs:
               -e DATABASE_URL=postgresql+psycopg://kubsu:kubsu@localhost:5432/kubsu \
               --restart=always \
               myapp:latest \
-              uvicorn src.main:app --host 127.0.0.1 --port 8094 --proxy-headers
+              uvicorn src.main:app --host 127.0.0.1 --port 8094
           '
