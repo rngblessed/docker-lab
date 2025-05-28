@@ -1,11 +1,10 @@
-from fastapi import FastAPI, APIRouter, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from src import models, schemas
 from src.database import init_db, get_db
 
 app = FastAPI()
-app.include_router(router, prefix="/pasteur")
 
 
 @app.on_event("startup")
