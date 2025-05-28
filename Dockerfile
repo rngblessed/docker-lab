@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY pyproject.toml ./
 RUN pip install --upgrade pip
-RUN pip install .[test]  # Устанавливаются зависимости для тестов, включая pytest
+RUN pip install "psycopg[binary]" .[test]  # Устанавливаются зависимости для тестов, включая pytest
 
 COPY . .
 
@@ -21,7 +21,7 @@ RUN useradd -m appuser
 WORKDIR /app
 COPY --from=builder /app /app
 
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir "psycopg[binary]" .
 
 USER appuser
 
