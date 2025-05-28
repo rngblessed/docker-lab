@@ -63,6 +63,7 @@ jobs:
              (podman rm myapp || true) && \
              podman run -d \
                --name myapp \
+               -p 8094:8094 \
                --network host \
                myapp:latest \
                uvicorn src.main:app --host 0.0.0.0 --port 8094"
