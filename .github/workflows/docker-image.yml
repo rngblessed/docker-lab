@@ -26,7 +26,12 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Initialize DB from dump
-        run: psql postgresql://kubsu:kubsu@postgres:5432/kubsu -f kubsu/dump.sql
+        run: |
+          docker run --rm \
+            --network container:${{ job.services.postgres.id }} \
+            -v ${{ github.workspace }}/kubsu:/tmp \
+            postgres:14 \
+            psql postgresql://kubsu:kubsu@localhost:5432/kubsu -f /tmp/dump.sql
 
       - name: Build Docker image
         run: docker build -t myapp:test .
