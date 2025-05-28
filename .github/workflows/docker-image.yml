@@ -7,6 +7,7 @@ on:
 jobs:
   build-test-deploy:
     runs-on: self-hosted
+
     services:
       postgres:
         image: postgres:14
@@ -25,19 +26,17 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Initialize DB from dump
-        run: psql postgresql://kubsu:kubsu@localhost:5432/kubsu -f kubsu/dump.sql
+        run: psql postgresql://kubsu:kubsu@postgres:5432/kubsu -f kubsu/dump.sql
 
       - name: Build Docker image
         run: docker build -t myapp:test .
 
-      - name: Build test image
-        run: docker build --target builder -t myapp:test .
-
       - name: Run tests
         run: |
           docker run --rm \
-            --network host \
+            --network container:${{ job.services.postgres.id }} \
             -e PYTHONPATH=/app \
+            -e DATABASE_URL=postgresql://kubsu:kubsu@postgres:5432/kubsu \
             myapp:test \
             pytest tests
 
@@ -49,19 +48,22 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Save Docker image to archive
+        run: docker save myapp:latest -o myapp.tar
+
       - name: Deploy to remote server
         run: |
-          docker save myapp:latest | \
-            ssh -o StrictHostKeyChecking=no \
-                -p ${{ secrets.SSH_PORT }} \
-                ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            "podman load && \
-             podman tag myapp:latest myapp:latest && \
-             (podman stop myapp || true) && \
-             (podman rm myapp || true) && \
-             podman run -d \
-               --name myapp \
-               -p 127.0.0.1:8094:8094 \
-               myapp:latest \
-               uvicorn src.main:app --host 0.0.0.0 --port 8094"
+          scp -P ${{ secrets.SSH_PORT }} myapp.tar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/myapp.tar
 
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
+            set -e
+            podman load < /tmp/myapp.tar
+            podman stop myapp || true
+            podman rm myapp || true
+            podman run -d \
+              --name myapp \
+              -p 127.0.0.1:8094:8094 \
+              --restart=always \
+              myapp:latest \
+              uvicorn src.main:app --host 0.0.0.0 --port 8094
+          '
