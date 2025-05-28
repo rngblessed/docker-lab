@@ -38,6 +38,9 @@ jobs:
 
       - name: Build test image
         run: docker build --target test -t myapp:test .
+      
+      - name: Inspect installed packages
+        run: docker run --rm myapp:test pip freeze
 
       - name: Run tests
         run: |
