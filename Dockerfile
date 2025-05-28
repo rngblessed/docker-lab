@@ -1,15 +1,19 @@
-# Stage 1: Build
-FROM python:3.11-slim as builder
+# ---------- Stage 1: Build ----------
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
 COPY pyproject.toml ./
-
-RUN pip install .[test]
+RUN pip install --upgrade pip
+RUN pip install .[test]  # Устанавливаются зависимости для тестов, включая pytest
 
 COPY . .
 
-# Stage 2: Production image
+# ---------- Stage 2: Test ----------
+FROM builder AS test
+CMD ["pytest", "tests"]
+
+# ---------- Stage 3: Production ----------
 FROM python:3.11-slim
 
 RUN useradd -m appuser
