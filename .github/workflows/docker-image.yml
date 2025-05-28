@@ -34,7 +34,7 @@ jobs:
             psql postgresql://kubsu:kubsu@localhost:5432/kubsu -f /tmp/dump.sql
 
       - name: Build Docker image
-        run: docker build -t myapp:test .
+        run: docker build --no-cache -t myapp:test .
 
       - name: Build test image
         run: docker build --target test -t myapp:test .
