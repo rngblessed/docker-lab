@@ -36,14 +36,16 @@ jobs:
       - name: Build Docker image
         run: docker build -t myapp:test .
 
+      - name: Build test image
+        run: docker build --target test -t myapp:test .
+
       - name: Run tests
         run: |
           docker run --rm \
             --network container:${{ job.services.postgres.id }} \
-            -e PYTHONPATH=/app \
             -e DATABASE_URL=postgresql://kubsu:kubsu@postgres:5432/kubsu \
-            myapp:test \
-            pytest tests
+            myapp:test
+
 
       - name: Build prod image
         run: docker build -t myapp:latest .
